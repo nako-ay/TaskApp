@@ -9,10 +9,11 @@ import UIKit
 import RealmSwift
 import UserNotifications
 
-class ViewController: UIViewController ,UITableViewDelegate, UITableViewDataSource{
+class ViewController: UIViewController ,UITableViewDelegate, UITableViewDataSource,UISearchBarDelegate{
 
     @IBOutlet weak var tableView: UITableView!
     
+    @IBOutlet weak var searchBar: UISearchBar!
     // Realmインスタンスを取得する
     let realm = try! Realm()  // ←追加
     
@@ -27,6 +28,7 @@ class ViewController: UIViewController ,UITableViewDelegate, UITableViewDataSour
         tableView.fillerRowHeight = UITableView.automaticDimension
         tableView.delegate = self
         tableView.dataSource = self
+        searchBar.delegate = self
     }
     
     // データの数（＝セルの数）を返すメソッド
@@ -109,5 +111,17 @@ class ViewController: UIViewController ,UITableViewDelegate, UITableViewDataSour
         }
     }
 
+    // テキストが変更された時に呼ばれる
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchText.isEmpty {
+            // 検索文字列が空の場合は全件表示
+            taskArray = realm.objects(Task.self).sorted(byKeyPath: "date", ascending: true)
+        } else {
+            // カテゴリーでフィルタリング
+            let predicate = NSPredicate(format: "category CONTAINS[c] %@", searchText)
+            taskArray = realm.objects(Task.self).filter(predicate).sorted(byKeyPath: "date", ascending: true)
+        }
+        tableView.reloadData()
+    }
 }
 
